@@ -1,7 +1,7 @@
 /*slamani abdelhafid.  group 24.b83 . st130302@student.spbu.ru*/
 #include "bmp.h"
 
-void loadBMP(const std::string &filename, BMPHeader &header, BMPInfoHeader &infoHeader, std::vector<uint8_t> &data) {
+void BMPImage::load(const std::string &filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
         throw std::runtime_error("Cannot open file");
@@ -21,7 +21,7 @@ void loadBMP(const std::string &filename, BMPHeader &header, BMPInfoHeader &info
     file.read(reinterpret_cast<char*>(data.data()), data.size());
 }
 
-void saveBMP(const std::string &filename, const BMPHeader &header, const BMPInfoHeader &infoHeader, const std::vector<uint8_t> &data) {
+void BMPImage::save(const std::string &filename) const {
     std::ofstream file(filename, std::ios::binary);
     if (!file) {
         throw std::runtime_error("Cannot open file for writing");
@@ -32,33 +32,45 @@ void saveBMP(const std::string &filename, const BMPHeader &header, const BMPInfo
     file.write(reinterpret_cast<const char*>(data.data()), data.size());
 }
 
-void rotate90Clockwise(const std::vector<uint8_t> &src, std::vector<uint8_t> &dst, int width, int height) {
-    dst.resize(width * height * 3);
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            int srcIndex = (y * width + x) * 3;
-            int dstIndex = ((width - 1 - x) * height + y) * 3;
-            dst[dstIndex] = src[srcIndex];        // Blue
+void BMPImage::rotate90Clockwise() {
+    std::vector<uint8_t> rotatedData;
+    rotate90Clockwise(data, rotatedData);
+    data = std::move(rotatedData);
+}
+
+void BMPImage::rotate90CounterClockwise() {
+    std::vector<uint8_t> rotatedData;
+    rotate90CounterClockwise(data, rotatedData);
+    data = std::move(rotatedData);
+}
+
+void BMPImage::rotate90Clockwise(const std::vector<uint8_t> &src, std::vector<uint8_t> &dst) {
+    dst.resize(infoHeader.height * infoHeader.width * 3);
+    for (int y = 0; y < infoHeader.height; ++y) {
+        for (int x = 0; x < infoHeader.width; ++x) {
+            int srcIndex = (y * infoHeader.width + x) * 3;
+            int dstIndex = ((infoHeader.width - 1 - x) ) * infoHeader.height + y) * 3;
+            dst[dstIndex] = src[srcIndex];       // Blue
             dst[dstIndex + 1] = src[srcIndex + 1]; // Green
             dst[dstIndex + 2] = src[srcIndex + 2]; // Red
         }
     }
 }
 
-void rotate90CounterClockwise(const std::vector<uint8_t> &src, std::vector<uint8_t> &dst, int width, int height) {
-    dst.resize(width * height * 3);
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            int srcIndex = (y * width + x) * 3;
-            int dstIndex = (x * height + (height - 1 - y)) * 3;
-            dst[dstIndex] = src[srcIndex];        // Blue
+void BMPImage::rotate90CounterClockwise(const std::vector<uint8_t> &src, std::vector<uint8_t> &dst) {
+    dst.resize(infoHeader.height * infoHeader.width * 3);
+    for (int y = 0; y < infoHeader.height; ++y) {
+        for (int x = 0; x < infoHeader.width; ++x) {
+            int srcIndex = (y * infoHeader.width + x) * 3;
+            int dstIndex = (x * infoHeader.height + (infoHeader.height - 1 - y)) * 3;
+            dst[dstIndex] = src[srcIndex];       // Blue
             dst[dstIndex + 1] = src[srcIndex + 1]; // Green
             dst[dstIndex + 2] = src[srcIndex + 2]; // Red
         }
     }
 }
 
-void applyGaussianFilter(const std::vector<uint8_t> &src, std::vector<uint8_t> &dst, int width, int height) {
-    // TO DO: Implement Gaussian filter
-    dst = src; // Temporary solution, replace with actual implementation
+void BMPImage::applyGaussianFilter(const std::vector<uint8_t> &src, std::vector<uint8_t> &dst) {
+    // Implementation of Gaussian filter would go here
+    // This is a placeholder for the actual filter logic
 }
