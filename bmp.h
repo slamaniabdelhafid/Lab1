@@ -30,7 +30,8 @@ struct BMPInfoHeader {
     uint32_t colorsImportant; // important colors
 };
 #pragma pack(pop)
-
+// Это следует сделать методами класса картинки. Тут слишком много параметров, состояние картинки разделено, поэтому никаких
+// инвариантов поддержано не будет
 void loadBMP(const std::string &filename, BMPHeader &header, BMPInfoHeader &infoHeader, std::vector<uint8_t> &data);
 void saveBMP(const std::string &filename, const BMPHeader &header, const BMPInfoHeader &infoHeader, const std::vector<uint8_t> &data);
 void rotate90Clockwise(const std::vector<uint8_t> &src, std::vector<uint8_t> &dst, int width, int height);
