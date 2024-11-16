@@ -51,6 +51,7 @@ void rotate90CounterClockwise(const std::vector<uint8_t> &src, std::vector<uint8
         for (int x = 0; x < width; ++x) {
             int srcIndex = (y * width + x) * 3;
             int dstIndex = (x * height + (height - 1 - y)) * 3;
+            // Можно быол сделать структуру для пикселя, чтобы делать это одним присваиванием
             dst[dstIndex] = src[srcIndex];        // Blue
             dst[dstIndex + 1] = src[srcIndex + 1]; // Green
             dst[dstIndex + 2] = src[srcIndex + 2]; // Red
