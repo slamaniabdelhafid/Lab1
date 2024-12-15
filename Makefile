@@ -1,17 +1,11 @@
-CC=g++
-CFLAGS=-c -Wall
-LFLAGS=-o
+CC = g++
+CFLAGS = -Wall -Wextra -O2
 
-all: main
+all: bmp_lab
 
-main: main.o bmp.o
-	$(CC) $(LFLAGS) main main.o bmp.o
-
-main.o: main.cpp bmp.h
-	$(CC) $(CFLAGS) main.cpp
-
-bmp.o: bmp.cpp bmp.h
-	$(CC) $(CFLAGS) bmp.cpp
+bmp_lab: main.cpp
+	$(CC) $(CFLAGS) -o bmp_lab main.cpp
 
 clean:
-	rm -f *.o main
+	rm -f bmp_lab
+	rm -f rotated_clockwise.bmp rotated_counterclockwise.bmp blurred.bmp
