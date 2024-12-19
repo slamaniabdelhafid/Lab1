@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstring>
 #include <algorithm>
+#include <cstdint>
 
 #pragma pack(push, 1) 
 struct BMPFileHeader {
