@@ -1,0 +1,24 @@
+name: Benchmark Original Code
+
+on: [push, pull_request]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y g++
+    - name: Compile
+      run: g++ -o bmp_lab main.cpp
+    - name: Create test image
+      run: |
+        # Create a simple 1000x1000 test image if input.bmp doesn't exist
+        if [ ! -f input.bmp ]; then
+          convert -size 1000x1000 xc:white -fill blue -draw "circle 500,500 500,800" input.bmp
+        fi
+    - name: Run benchmark
+      run: |
+        echo "Running original code benchmark..."
+        time ./bmp_lab
+        echo "Benchmark completed."
