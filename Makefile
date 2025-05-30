@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -O2 -fopenmp  
 
 all: bmp_lab
 
