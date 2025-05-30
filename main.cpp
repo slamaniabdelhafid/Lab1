@@ -5,6 +5,8 @@
 #include <cstring>
 #include <algorithm>
 #include <cstdint>
+#include <chrono>
+#include <omp.h>
 
 #pragma pack(push, 1) 
 struct BMPFileHeader {
@@ -37,6 +39,8 @@ public:
     std::vector<uint8_t> pixelData;
 
     bool load(const std::string& filename) {
+        auto start = std::chrono::high_resolution_clock::now();
+        
         std::ifstream file(filename, std::ios::binary);
         if (!file) {
             std::cerr << "Error: Cannot open file " << filename << "!\n";
@@ -56,7 +60,7 @@ public:
             return false;
         }
 
-        int rowSize = ((infoHeader.biWidth * 3 + 3) / 4) * 4; // BMP row must be multiple of 4 bytes
+        int rowSize = ((infoHeader.biWidth * 3 + 3) / 4) * 4;
         int dataSize = rowSize * std::abs(infoHeader.biHeight);
         pixelData.resize(dataSize);
 
@@ -64,13 +68,19 @@ public:
         file.read(reinterpret_cast<char*>(pixelData.data()), dataSize);
         file.close();
 
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+        std::cout << "Load time: " << elapsed.count() << " seconds\n";
+
         std::cout << "Successfully loaded BMP file: " << filename << "\n";
-        std::cout << "Image width: " << infoHeader.biWidth << ", height: " << infoHeader.biHeight << ", row size: " << rowSize << ", total size: " << dataSize << " bytes\n";
+        std::cout << "Image width: " << infoHeader.biWidth << ", height: " << infoHeader.biHeight << "\n";
         
         return true;
     }
 
     void save(const std::string& filename) {
+        auto start = std::chrono::high_resolution_clock::now();
+        
         std::ofstream file(filename, std::ios::binary);
         if (!file) {
             std::cerr << "Error: Cannot save file " << filename << "!\n";
@@ -82,10 +92,16 @@ public:
         file.write(reinterpret_cast<char*>(pixelData.data()), pixelData.size());
         file.close();
 
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+        std::cout << "Save time: " << elapsed.count() << " seconds\n";
+
         std::cout << "Image saved as: " << filename << "\n";
     }
 
     void rotate90Clockwise() {
+        auto start = std::chrono::high_resolution_clock::now();
+        
         int width = infoHeader.biWidth;
         int height = infoHeader.biHeight;
         int rowSize = ((width * 3 + 3) / 4) * 4;
@@ -93,19 +109,27 @@ public:
 
         std::vector<uint8_t> newData(newRowSize * width);
         
+        #pragma omp parallel for collapse(2)
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 int oldIndex = y * rowSize + x * 3;
                 int newIndex = x * newRowSize + (height - 1 - y) * 3;
-                std::copy(pixelData.begin() + oldIndex, pixelData.begin() + oldIndex + 3, newData.begin() + newIndex);
+                std::copy(pixelData.begin() + oldIndex, pixelData.begin() + oldIndex + 3, 
+                          newData.begin() + newIndex);
             }
         }
 
         pixelData = newData;
         std::swap(infoHeader.biWidth, infoHeader.biHeight);
+        
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+        std::cout << "Clockwise rotation time: " << elapsed.count() << " seconds\n";
     }
 
     void rotate90CounterClockwise() {
+        auto start = std::chrono::high_resolution_clock::now();
+        
         int width = infoHeader.biWidth;
         int height = infoHeader.biHeight;
         int rowSize = ((width * 3 + 3) / 4) * 4;
@@ -113,20 +137,28 @@ public:
 
         std::vector<uint8_t> newData(newRowSize * width);
         
+        #pragma omp parallel for collapse(2)
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 int oldIndex = y * rowSize + x * 3;
                 int newIndex = (width - 1 - x) * newRowSize + y * 3;
-                std::copy(pixelData.begin() + oldIndex, pixelData.begin() + oldIndex + 3, newData.begin() + newIndex);
+                std::copy(pixelData.begin() + oldIndex, pixelData.begin() + oldIndex + 3, 
+                          newData.begin() + newIndex);
             }
         }
 
         pixelData = newData;
         std::swap(infoHeader.biWidth, infoHeader.biHeight);
+        
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+        std::cout << "Counter-clockwise rotation time: " << elapsed.count() << " seconds\n";
     }
 };
 
 int main() {
+    auto total_start = std::chrono::high_resolution_clock::now();
+    
     BMPImage image;
 
     if (!image.load("input.bmp")) {
@@ -138,6 +170,10 @@ int main() {
 
     image.rotate90CounterClockwise();
     image.save("rotated_counterclockwise.bmp");
+
+    auto total_end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> total_elapsed = total_end - total_start;
+    std::cout << "Total execution time: " << total_elapsed.count() << " seconds\n";
 
     return 0;
 }
